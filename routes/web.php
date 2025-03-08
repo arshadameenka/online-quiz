@@ -15,6 +15,7 @@ Route::middleware(['auth'])
     ->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/questions/{category}', 'getQuestions')->name('questions');
+        Route::post('/check-answer', 'checkAnswer')->name('check');
     });
 
 // Route::middleware('auth')->group(function () {

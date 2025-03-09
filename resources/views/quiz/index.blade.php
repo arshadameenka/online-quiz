@@ -7,11 +7,41 @@
 
 
     <div class=" mb-10  bg-gradient-to-r from-violet-600 to-violet-500 dark:bg-gray-800  shadow-sm p-4">
-        <div class="container">
-            <h1 class="text-3xl text-center mb-8 text-gray-50 font-bold">Online Quiz</h1>
-            <div id="category-container">
+        <div class="p-4">
 
-                <h2 class="text-center text-xl  mb-4">Select Quiz Type</h2>
+            <div class="flex justify-between items-center mb-10">
+                <h1 class="text-3xl text-center text-gray-50 font-bold flex-1 ">Online Quiz</h1>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg" stroke="white">
+                            <path d="M21 12L13 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"></path>
+                            <path d="M18 15L20.913 12.087V12.087C20.961 12.039 20.961 11.961 20.913 11.913V11.913L18 9"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path
+                                d="M16 5V4.5V4.5C16 3.67157 15.3284 3 14.5 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H14.5C15.3284 21 16 20.3284 16 19.5V19.5V19"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </a>
+                </form>
+            </div>
+            
+            <div id="error-block" class="bg-red-500 text-white p-3 rounded-md mb-4 relative hidden">
+                <span class="absolute top-1 right-2 cursor-pointer" onclick="document.getElementById('error-block').classList.add('hidden')">
+                    &times;
+                </span>
+                <p id="error-message"></p>
+            </div>
+            
+
+
+            <div id="category-container">
+                <div class="flex justify-center items-center">
+
+                    <h2 class="text-center text-xl  mb-4">Select Quiz Type</h2>
+                </div>
                 <div id="categories" class="grid grid-cols-2 gap-4">
                     @foreach ($categories as $category)
                         <button class="category-btn bg-blue-900 text-white p-2 rounded-md py-4"
@@ -39,7 +69,10 @@
 
                     </span>
                 </div>
-                <p id="question" class="text-center text-white p-2 bg-blue-950 py-4 text-xl rounded-xl"></p>
+                <div class="h-20 bg-blue-950 rounded-xl">
+
+                    <p id="question" class=" text-center text-white py-4 text-xl "></p>
+                </div>
                 <div id="choices" class="grid grid-cols-2 gap-1"></div>
                 <div class="flex justify-center mt-4">
                     <button
@@ -52,205 +85,13 @@
 
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            let questions = [];
-            let currentQuestionIndex = 0;
-            let timer;
-            let countdown = 90;
-            let userAnswers = [];
-            // Fetch categories when clicking a pagination dot
-            $('.pagination-dot').click(function() {
-                let page = $(this).data('page');
-                $.ajax({
-                    url: "{{ route('quiz.index') }}?page=" + page,
-                    method: 'GET',
-                    success: function(response) {
-                        let newCategories = $(response).find('#categories').html();
-                        $('#categories').html(newCategories);
+    <Script>
+        var indexRoute = "{{ route('quiz.index') }}";
+        var getQustionsRoute = "/quiz/questions/";
+        var checkAnswerRoute = "{{ route('quiz.check') }}";
+        var logoutRoute = "{{ route('logout') }}";
+    </Script>
 
-                        $('.pagination-dot').removeClass('text-black');
-                        $(`.pagination-dot[data-page="${page}"]`).addClass('text-black');
-                    }
-                });
-            });
+    @vite('resources/js/quiz.js');
 
-            // Fetch questions when clicking a category
-            $(document).on('click', '.category-btn', function() {
-                let categoryName = $(this).data('name');
-                $.ajax({
-                    url: `/quiz/questions/${encodeURIComponent(categoryName)}`,
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.length > 0) {
-                            questions = response;
-                            currentQuestionIndex = 0;
-                            userAnswers = []; // Reset user answers for new quiz
-                            $('#quiz-container').show();
-                            $('#category-container').hide();
-                            showQuestion();
-                        }
-                    }
-                });
-            });
-            //show qustions
-            function showQuestion() {
-                if (currentQuestionIndex >= questions.length) {
-                    showSummary();
-                    return;
-                }
-
-                let question = questions[currentQuestionIndex];
-                $('#question-number').text(` ${currentQuestionIndex + 1}`);
-                $('#question').text(question.question);
-                $('#choices').empty();
-
-                let choices = [...question.choices];
-                choices.sort(() => Math.random() - 0.5); // Shuffle choices
-
-                choices.forEach(choice => {
-                    $('#choices').append(
-                        `<button class="choice-btn bg-blue-900 text-white p-2 rounded-md m-6 text-lg " data-answer="${choice}">${choice}</button>`
-                    );
-                    $('.choice-btn').prop('disabled', false);
-                });
-
-                resetTimer();
-            }
-            //reset timer
-            function resetTimer() {
-                let totalTime = 90;
-                clearInterval(timer);
-                countdown = 90;
-                updateTimerDisplay(countdown);
-
-                timer = setInterval(() => {
-                    countdown--;
-                    updateTimerDisplay(countdown);
-
-                    if (countdown <= 0) {
-                        clearInterval(timer);
-                        saveAnswer(null); // go to next question if time expires
-                    }
-                    if (countdown < 10) {
-                        $('#timer').removeClass("bg-yellow-600 bg-white").addClass("bg-red-500");
-                    } else if (countdown < 30) {
-                        $('#timer').removeClass("bg-white bg-red-500").addClass("bg-yellow-600");
-                    } else {
-                        $('#timer').removeClass("bg-yellow-600 bg-red-500").addClass("bg-white");
-                    }
-
-                }, 1000);
-            }
-
-            //timer update in each second
-            function updateTimerDisplay(seconds) {
-                let minutes = Math.floor(seconds / 60);
-                let secs = seconds % 60;
-                let formattedTime = `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-                $('#timer').text(` ${formattedTime}`);
-            }
-            //choice selected
-            $(document).on('click', '.choice-btn', function() {
-                let selectedAnswer = $(this).data('answer');
-                $('.choice-btn').prop('disabled', true);
-                saveAnswer(selectedAnswer);
-            });
-            //save user selected answer and correct answer to an array for result calculation
-            function saveAnswer(selectedAnswer) {
-                clearInterval(timer);
-
-                let question = questions[currentQuestionIndex];
-                let questionId = questions[currentQuestionIndex].id;
-
-                $.ajax({
-                    url: "/quiz/check-answer",
-                    method: "POST",
-                    data: {
-                        question_id: questionId,
-                        selected_answer: selectedAnswer,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function(response) {
-                        correctAnswer = response.correctAnswer;
-                        userAnswers.push({
-                            question: question.question,
-                            selected: selectedAnswer,
-                            correct: correctAnswer,
-                            isCorrect: selectedAnswer === correctAnswer
-                        });
-
-                        currentQuestionIndex++;
-                        showQuestion();
-                    }
-                });
-
-
-            }
-
-            function showSummary() {
-                $('#quiz-container').hide();
-                let correctAnswers = userAnswers.filter(entry => entry.isCorrect).length;
-                let totalQuestions = userAnswers.length;
-                let scorePercentage = (correctAnswers / totalQuestions) * 100;
-
-                let resultText = "";
-                let resultClass = "";
-
-                if (scorePercentage >= 60) {
-                    resultText = "Winner";
-                    resultClass = "text-green-500";
-                } else if (scorePercentage >= 40) {
-                    resultText = "Better";
-                    resultClass = "text-yellow-500";
-                } else {
-                    resultText = "Failed";
-                    resultClass = "text-red-500";
-                }
-                let summaryHtml = `<h2 class='text-center text-lg text-white font-bold mb-4'>Quiz Result</h2> 
-                <h3 class='text-center ${resultClass} text-2xl font-bold'>${resultText}</h3>`;
-
-                userAnswers.forEach((entry, index) => {
-                    let resultClass = entry.isCorrect ? "text-green-500" : "text-red-500";
-                    summaryHtml += `
-                        <div class='flex flex-col justify-between p-4 bg-blue-900 text-white rounded-md mb-4'>
-                            <div>
-                                 <span class="text-white text-lg"><strong>${index + 1}:</strong> ${entry.question} </span>
-                            </div>
-                            <span class="grid grid-cols-3 gap-3">
-                               
-                                <span class="${resultClass} ">Your Answer : <b>${entry.selected || "No Answer"}</b></span> 
-                                <span class="text-green-500">Correct Answer : <b>${entry.correct}</b></span>
-                            </span>
-                        </div>
-                    `;
-                });
-
-                summaryHtml +=
-                    "<button class='reset text-center text-lg text-white p-2 rounded-md font-bold bg-blue-900'>Reset</button>";
-
-                $('#quiz-container').after(`<div id="quiz-summary">${summaryHtml}</div>`);
-            }
-
-            $(document).on('click', '.reset', function() {
-                $('#quiz-summary').remove();
-                $('#quiz-container').hide();
-                $('#category-container').show();
-                // Reset pagination to page 1
-                $('.pagination-dot').removeClass('text-black');
-                $('.pagination-dot[data-page="1"]').addClass('text-black');
-
-                // Fetch categories for page 1
-                $.ajax({
-                    url: "{{ route('quiz.index') }}?page=1",
-                    method: 'GET',
-                    success: function(response) {
-                        let newCategories = $(response).find('#categories').html();
-                        $('#categories').html(newCategories);
-                    }
-                });
-
-            });
-        });
-    </script>
 </x-app-layout>

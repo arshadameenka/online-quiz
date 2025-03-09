@@ -23,8 +23,14 @@ $(function () {
                 let newCategories = $(response).find('#categories').html();
                 $('#categories').html(newCategories);
 
-                $('.pagination-dot').removeClass('text-black');
+                $('.pagination-dot').removeClass('text-black text-gray-300');
                 $(`.pagination-dot[data-page="${page}"]`).addClass('text-black');
+                $('.pagination-dot').each(function () {
+                    if ($(this).data('page') !== page) {
+                        $(this).addClass('text-gray-300');
+                    }
+                });
+                
             }
         });
     });
@@ -192,7 +198,7 @@ $(function () {
         }
         let summaryContainer = $('<div>', { id: "quiz-summary" });
         summaryContainer.append(`<h2 class='text-center text-lg text-white font-bold mb-4'>Quiz Result</h2>`);
-        summaryContainer.append(`<h3 class='text-center ${resultClass} text-2xl font-bold'>${resultText}</h3>`);
+        summaryContainer.append(`<h3 class='text-center ${resultClass} text-2xl font-bold bg-white mb-2 rounded-lg p-2'>${resultText}</h3>`);
 
         userAnswers.forEach((entry, index) => {
             let resultClass = entry.isCorrect ? "text-green-500" : "text-red-500";
@@ -201,7 +207,7 @@ $(function () {
                     <div><span class="text-white text-lg"><strong>${index + 1}:</strong> ${entry.question}</span></div>
                     <span class="grid grid-cols-3 gap-3">
                         <span class="${resultClass}">Your Answer: <b>${entry.selected || "No Answer"}</b></span> 
-                        <span class="text-green-500">Correct Answer: <b>${entry.correct}</b></span>
+                        <span class="text-green-600">Correct Answer: <b>${entry.correct}</b></span>
                     </span>
                 </div>
             `);

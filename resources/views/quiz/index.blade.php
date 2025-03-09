@@ -52,7 +52,7 @@
                 <div id="pagination" class="mt-3 text-center">
                     @for ($i = 1; $i <= $categories->lastPage(); $i++)
                         <span
-                            class="pagination-dot text-gray-300 m-1 cursor-pointer text-[20px] {{ $i == $categories->currentPage() ? 'text-black' : '' }}"
+                            class="pagination-dot  m-1 cursor-pointer text-[20px] {{ $i == $categories->currentPage() ? 'text-black' : 'text-gray-300'  }}"
                             data-page="{{ $i }}">●</span>
                     @endfor
                 </div>
@@ -69,11 +69,11 @@
 
                     </span>
                 </div>
-                <div class="h-20 bg-blue-950 rounded-xl">
+                <div class="h-max p-2 bg-blue-950 rounded-xl mb-5">
 
                     <p id="question" class=" text-center text-white py-4 text-xl "></p>
                 </div>
-                <div id="choices" class="grid grid-cols-2 gap-1"></div>
+                <div id="choices" class="grid grid-cols-2 gap-4"></div>
                 <div class="flex justify-center mt-4">
                     <button
                         class='reset text-center text-lg text-white p-2 rounded-md font-bold bg-blue-900'>Reset</button>
@@ -92,6 +92,6 @@
         var logoutRoute = "{{ route('logout') }}";
     </Script>
 
-    @vite('resources/js/quiz.js');
+    @vite('resources/js/quiz.js')
 
 </x-app-layout>
